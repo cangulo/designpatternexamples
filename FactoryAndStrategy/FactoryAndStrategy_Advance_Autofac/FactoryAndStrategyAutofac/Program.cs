@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using FactoryAndStrategyAutofac.ILoginProcess;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace FactoryAndStrategyAutofac
@@ -43,9 +44,15 @@ namespace FactoryAndStrategyAutofac
                                             .Where(x =>
                                                 x.IsClass &&
                                                 x.GetInterfaces().Any(x => x == typeof(ILoginService)))
-                                            .Select(x => (ILoginService)x);
+                                            .ToArray();
+            builder
+                .RegisterTypes(loginProcessProviders)
+                .AsImplementedInterfaces();
 
-            builder.Register(c => new LoginProcessFactory(loginProcessProviders)).As<ILoginProcessFactory>();
+            builder
+                .Register(c =>
+                    new LoginProcessFactory(c.Resolve<IEnumerable<ILoginService>>()))
+                .As<ILoginProcessFactory>();
 
 
             return builder.Build();
